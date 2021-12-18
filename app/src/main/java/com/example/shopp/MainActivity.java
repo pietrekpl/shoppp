@@ -4,7 +4,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
+import org.json.JSONArray;
+import org.json.simple.parser.JSONParser;
+
 public class MainActivity extends AppCompatActivity {
+
+    JSONParser jsonParser = new JSONParser();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
