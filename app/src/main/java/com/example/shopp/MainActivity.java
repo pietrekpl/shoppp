@@ -13,6 +13,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,6 +27,9 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+
+    ArrayList<Product> arrayList;
+    ListView listView;
 
     String jsonParse = "[\n" +
             "   {\n" +
@@ -55,15 +59,83 @@ public class MainActivity extends AppCompatActivity {
             "] ";
 
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        arrayList = new ArrayList<>();
+        listView = (ListView) findViewById(R.id.listView);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new ReadJson().execute(jsonParse);
+            }
+        });
+
+    }
+
+    class ReadJson extends AsyncTask<String, Integer, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                return readURL(params[0]);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return params[0];
+
+        }
+
+        @Override
+        protected void onPostExecute(String contnent) {
+            try {
 
 
+                JSONObject jsonObject = new JSONObject(contnent);
+                JSONArray jsonArray = jsonObject.getJSONArray("");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject productObject = jsonArray.getJSONObject(i);
+                    arrayList.add(new Product(
+                            productObject.getString("image"),
+                            productObject.getString("price"),
+                            productObject.getString("name")
+                    ));
 
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            CustomListAdapter adapter = new CustomListAdapter(
+                    getApplicationContext(),R.layout.custom_list_layout,arrayList
+            );
+            listView.setAdapter(adapter);
+        }
+    }
 
+    public static String readURL(String url) throws Exception {
+        try {
+            URL website = new URL(url);
+            URLConnection connection = website.openConnection();
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            connection.getInputStream()));
 
+            StringBuilder response = new StringBuilder();
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null)
+                response.append(inputLine);
+
+            in.close();
+
+            return response.toString();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return url;
     }
 }
 
